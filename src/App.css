@@ -1,3 +1,4 @@
+/* Page Login */
 .login__page {
   align-items: center;
   background-color: rgb(232, 232, 236);
@@ -54,4 +55,16 @@
 
 .input__content button:enabled:active {
   transform: translateY(4px);
+}
+
+/* Page Wallet */
+.wallet__header {
+  background-color: rgba(128, 128, 128, 0.556);
+  box-shadow: 1px 1px 18px;
+  margin-bottom: 20px;
+}
+
+.wallet__navbar {
+  display: flex;
+  justify-content: space-between;
 }
