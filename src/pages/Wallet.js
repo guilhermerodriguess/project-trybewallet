@@ -13,8 +13,8 @@ class Wallet extends React.Component {
       value: '',
       description: '',
       currency: 'USD',
-      method: '',
-      tag: '',
+      method: 'Dinheiro',
+      tag: 'Alimentação',
     };
   }
 
@@ -69,14 +69,14 @@ class Wallet extends React.Component {
     event.preventDefault();
     const { formSave } = this.props;
     const { value } = this.state;
-    if (value === 0) {
+    if (value === '0' || value === '') {
       return null;
     }
     formSave(this.state);
     this.setState((prevState) => ({
       id: prevState.id + 1,
       value: '',
-      method: '',
+      description: '',
     }));
   }
 

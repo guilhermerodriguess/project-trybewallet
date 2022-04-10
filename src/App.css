@@ -88,3 +88,20 @@
   border-radius: 4px;
   margin-left: 12px;
 }
+
+/* wallet table */
+.wallet__table {
+  border-collapse: separate;
+  border-spacing: 28px 10px;
+}
+
+table {
+  background-color: rgba(129, 126, 122, 0.252);
+  text-align: center;
+
+}
+
+th {
+  padding: 10px;
+}
+
