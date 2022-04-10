@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchApi, saveForm } from '../actions';
+import Table from './components/Table';
 
 class Wallet extends React.Component {
   constructor() {
@@ -167,7 +168,9 @@ class Wallet extends React.Component {
         </header>
         <main className="wallet__main">
           { formsInput }
+          <Table />
         </main>
+
       </>
     );
   }
