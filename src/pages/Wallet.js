@@ -1,9 +1,22 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchApi } from '../actions';
+import { fetchApi, saveForm } from '../actions';
 
 class Wallet extends React.Component {
+  constructor() {
+    super();
+
+    this.state = {
+      id: 0,
+      value: '',
+      description: '',
+      currency: 'USD',
+      method: '',
+      tag: '',
+    };
+  }
+
   componentDidMount() {
     const { currenciesData } = this.props;
     currenciesData();
@@ -22,13 +35,28 @@ class Wallet extends React.Component {
       ));
   }
 
+  handleTotal = () => {
+    const { expenses } = this.props;
+    let total = 0;
+    expenses.forEach((despesa) => {
+      const moedaSelecionada = despesa.currency;
+      const posiçãoMoeda = Object.keys(despesa.exchangeRates)
+        .filter((moeda) => moeda === moedaSelecionada && moeda)[0];
+      const valorMoeda = despesa.exchangeRates[posiçãoMoeda].ask;
+      const valorReal = despesa.value * valorMoeda;
+      total += valorReal;
+    });
+    return total.toFixed(2);
+  }
+
   navBar = (email) => (
     <div className="wallet__navbar">
       <h2 data-testid="email-field">
         {`Usuário: ${email}` }
       </h2>
+      <h2>Total: R$</h2>
       <h2 data-testid="total-field">
-        {`Total: ${0}`}
+        {this.handleTotal()}
       </h2>
       <h2 data-testid="header-currency-field">
         {`Moeda: ${'BRL'}`}
@@ -36,45 +64,75 @@ class Wallet extends React.Component {
     </div>
   )
 
+  submitForm = (event) => {
+    event.preventDefault();
+    const { formSave } = this.props;
+    const { value } = this.state;
+    if (value === 0) {
+      return null;
+    }
+    formSave(this.state);
+    this.setState((prevState) => ({
+      id: prevState.id + 1,
+      value: '',
+      method: '',
+    }));
+  }
+
+  handleInputs = ({ target: { id, value } }) => {
+    this.setState({ [id]: value });
+  }
+
   formsInput = () => {
-    const getCurrencies = this.getCurrencies();
+    const { value, description, method } = this.state;
     return (
-      <form>
-        <label htmlFor="valor">
+      <form onSubmit={ this.submitForm } className="wallet__main__form">
+        <label htmlFor="value">
           Valor:
           <input
-            id="valor"
+            onChange={ this.handleInputs }
+            id="value"
             data-testid="value-input"
             type="number"
             placeholder="Insira um valor"
+            step="0.010"
+            min="0"
+            value={ value }
           />
         </label>
-        <label htmlFor="descricao">
-          Descrição:
-          <input
-            id="descricao"
-            data-testid="description-input"
-            type="text"
-            placeholder="Insira uma descrição"
-          />
-        </label>
-        <label htmlFor="moedas">
+        <label htmlFor="currency">
           Moeda:
-          <select data-testid="currency-input" name="moedas" id="moedas">
-            { getCurrencies }
+          <select
+            onChange={ this.handleInputs }
+            data-testid="currency-input"
+            name="moedas"
+            id="currency"
+          >
+            { this.getCurrencies() }
           </select>
         </label>
-        <label htmlFor="pagamento">
+        <label htmlFor="method">
           Forma de Pagamento:
-          <select data-testid="method-input" name="pagamento" id="pagamento">
-            <option value="dinheiro">Dinheiro</option>
-            <option value="cŕedito">Cartão de crédito</option>
-            <option value="débito">Cartão de débito</option>
+          <select
+            onChange={ this.handleInputs }
+            data-testid="method-input"
+            name="pagamento"
+            id="method"
+            value={ method }
+          >
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartão de crédito">Cartão de crédito</option>
+            <option value="Cartão de débito">Cartão de débito</option>
           </select>
         </label>
-        <label htmlFor="categoria">
+        <label htmlFor="tag">
           Categoria:
-          <select data-testid="tag-input" name="categoria" id="categoria">
+          <select
+            onChange={ this.handleInputs }
+            data-testid="tag-input"
+            name="categoria"
+            id="tag"
+          >
             <option value="Alimentação">Alimentação</option>
             <option value="Lazer">Lazer</option>
             <option value="Trabalho">Trabalho</option>
@@ -82,6 +140,18 @@ class Wallet extends React.Component {
             <option value="Saúde">Saúde</option>
           </select>
         </label>
+        <label htmlFor="description">
+          Descrição:
+          <input
+            onChange={ this.handleInputs }
+            id="description"
+            data-testid="description-input"
+            type="text"
+            placeholder="Insira uma descrição"
+            value={ description }
+          />
+        </label>
+        <button type="submit">Adicionar despesa</button>
       </form>
     );
   }
@@ -106,16 +176,20 @@ class Wallet extends React.Component {
 Wallet.propTypes = {
   email: PropTypes.string.isRequired,
   currenciesData: PropTypes.func.isRequired,
+  formSave: PropTypes.func.isRequired,
+  expenses: PropTypes.arrayOf(PropTypes.any).isRequired,
   currencies: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = (state) => ({
   email: state.user.email,
   currencies: state.wallet.currencies,
+  expenses: state.wallet.expenses,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   currenciesData: () => dispatch(fetchApi()),
+  formSave: (object) => dispatch(saveForm(object)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
