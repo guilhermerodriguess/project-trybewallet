@@ -1,8 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchApi, saveForm } from '../actions';
-import Table from './components/Table';
+import { fetchApi, saveForm, editExpenseAction } from '../actions';
+import Table from '../components/Table';
 
 class Wallet extends React.Component {
   constructor() {
@@ -67,25 +67,48 @@ class Wallet extends React.Component {
 
   submitForm = (event) => {
     event.preventDefault();
+    const { editExpenseBool } = this.props;
     const { formSave } = this.props;
     const { value } = this.state;
     if (value === '0' || value === '') {
       return null;
     }
+    console.log(editExpenseBool);
     formSave(this.state);
-    this.setState((prevState) => ({
-      id: prevState.id + 1,
-      value: '',
-      description: '',
-    }));
+    if (editExpenseBool) {
+      this.setState(() => ({
+        value: '',
+        description: '',
+      }));
+    } else {
+      this.setState((prevState) => ({
+        id: prevState.id + 1,
+        value: '',
+        description: '',
+      }));
+    }
   }
 
   handleInputs = ({ target: { id, value } }) => {
     this.setState({ [id]: value });
   }
 
+  editExpense = (id) => {
+    const { expenses, editExpenseReducer } = this.props;
+    const expense = expenses.filter((ex) => ex.id === id)[0];
+    this.setState({
+      value: expense.value,
+      description: expense.description,
+      currency: expense.currency,
+      method: expense.method,
+      tag: expense.tag,
+    });
+    editExpenseReducer();
+  }
+
   formsInput = () => {
-    const { value, description, method } = this.state;
+    const { value, description, method, tag, currency } = this.state;
+    const { editExpenseBool } = this.props;
     return (
       <form onSubmit={ this.submitForm } className="wallet__main__form">
         <label htmlFor="value">
@@ -108,6 +131,7 @@ class Wallet extends React.Component {
             data-testid="currency-input"
             name="moedas"
             id="currency"
+            value={ currency }
           >
             { this.getCurrencies() }
           </select>
@@ -133,6 +157,7 @@ class Wallet extends React.Component {
             data-testid="tag-input"
             name="categoria"
             id="tag"
+            value={ tag }
           >
             <option value="Alimentação">Alimentação</option>
             <option value="Lazer">Lazer</option>
@@ -152,7 +177,9 @@ class Wallet extends React.Component {
             value={ description }
           />
         </label>
-        <button type="submit">Adicionar despesa</button>
+        <button type="submit">
+          { editExpenseBool ? 'Editar despesa' : 'Adicionas despesa' }
+        </button>
       </form>
     );
   }
@@ -168,7 +195,7 @@ class Wallet extends React.Component {
         </header>
         <main className="wallet__main">
           { formsInput }
-          <Table />
+          <Table editExpense={ this.editExpense } />
         </main>
 
       </>
@@ -180,6 +207,8 @@ Wallet.propTypes = {
   email: PropTypes.string.isRequired,
   currenciesData: PropTypes.func.isRequired,
   formSave: PropTypes.func.isRequired,
+  editExpenseReducer: PropTypes.func.isRequired,
+  editExpenseBool: PropTypes.bool.isRequired,
   expenses: PropTypes.arrayOf(PropTypes.any).isRequired,
   currencies: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
@@ -188,11 +217,13 @@ const mapStateToProps = (state) => ({
   email: state.user.email,
   currencies: state.wallet.currencies,
   expenses: state.wallet.expenses,
+  editExpenseBool: state.wallet.editExpense,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   currenciesData: () => dispatch(fetchApi()),
   formSave: (object) => dispatch(saveForm(object)),
+  editExpenseReducer: () => dispatch(editExpenseAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

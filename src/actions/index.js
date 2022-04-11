@@ -1,6 +1,8 @@
 export const USER_EMAIL = 'USER_EMAIL';
 export const FETCH_API = 'FETCH_API';
 export const SAVE_FORM = 'SAVE_FORM';
+export const REMOVE_EXPENSE = 'REMOVE_EXPENSE';
+export const EDIT_EXPENSE = 'EDIT_EXPENSE';
 
 function requestCurrencies(data) {
   return {
@@ -23,6 +25,15 @@ function saveFormAction(data, { id, value, description, currency, method, tag })
     },
   };
 }
+
+export const editExpenseAction = () => ({
+  type: EDIT_EXPENSE,
+});
+
+export const removeExpenseAction = (id) => ({
+  type: REMOVE_EXPENSE,
+  id,
+});
 
 export const userAction = (email) => ({
   type: USER_EMAIL,
